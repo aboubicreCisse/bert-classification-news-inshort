@@ -1,183 +1,95 @@
 import random
 import numpy as np
 import torch
-
 import matplotlib.pyplot as plt
 import seaborn as sns
-
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    confusion_matrix,
-    classification_report
-)
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 
 
 def set_seed(seed=42):
     """
-    Fixe toutes les graines aléatoires
-    pour assurer la reproductibilité.
+    Fixe la seed pour la reproductibilité.
+    Args:
+        seed (int): Valeur de la seed
     """
-
     random.seed(seed)
     np.random.seed(seed)
-
     torch.manual_seed(seed)
-
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-
+    torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 
 
-def calculate_metrics(y_true, y_pred):
+def compute_metrics(preds, labels):
     """
-    Calcule Accuracy et F1-score.
+    Calcule accuracy et F1-score.
+    Args:
+        preds (list): Prédictions du modèle
+        labels (list): Labels réels
+    Returns:
+        dict avec accuracy et f1
     """
-
-    acc = accuracy_score(y_true, y_pred)
-
-    f1 = f1_score(
-        y_true,
-        y_pred,
-        average="weighted"
-    )
-
-    return acc, f1
+    acc = accuracy_score(labels, preds)
+    f1 = f1_score(labels, preds, average="weighted")
+    return {"accuracy": acc, "f1": f1}
 
 
-def save_loss_curve(
-    train_losses,
-    val_losses,
-    save_path="figures/loss_curve.png"
-):
+def plot_training_curves(train_losses, val_losses, train_accs, val_accs, save_path="training_curves.png"):
     """
-    Sauvegarde la courbe de loss.
+    Trace les courbes de loss et accuracy.
+    Args:
+        train_losses (list): Loss d'entraînement par epoch
+        val_losses (list): Loss de validation par epoch
+        train_accs (list): Accuracy d'entraînement par epoch
+        val_accs (list): Accuracy de validation par epoch
+        save_path (str): Chemin de sauvegarde du graphique
     """
+    epochs = range(1, len(train_losses) + 1)
 
-    plt.figure(figsize=(8, 5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
-    plt.plot(
-        train_losses,
-        label="Train Loss"
-    )
+    # Courbe de loss
+    ax1.plot(epochs, train_losses, "b-o", label="Train Loss")
+    ax1.plot(epochs, val_losses, "r-o", label="Val Loss")
+    ax1.set_title("Loss par epoch")
+    ax1.set_xlabel("Epoch")
+    ax1.set_ylabel("Loss")
+    ax1.legend()
+    ax1.grid(True)
 
-    plt.plot(
-        val_losses,
-        label="Validation Loss"
-    )
+    # Courbe d'accuracy
+    ax2.plot(epochs, train_accs, "b-o", label="Train Accuracy")
+    ax2.plot(epochs, val_accs, "r-o", label="Val Accuracy")
+    ax2.set_title("Accuracy par epoch")
+    ax2.set_xlabel("Epoch")
+    ax2.set_ylabel("Accuracy")
+    ax2.legend()
+    ax2.grid(True)
 
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.title("Training and Validation Loss")
-
-    plt.legend()
-
-    plt.grid(True)
-
-    plt.savefig(
-        save_path,
-        bbox_inches="tight"
-    )
-
-    plt.close()
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.show()
+    print(f"Courbes sauvegardées dans {save_path}")
 
 
-def save_accuracy_curve(
-    train_accs,
-    val_accs,
-    save_path="figures/accuracy_curve.png"
-):
+def plot_confusion_matrix(labels, preds, class_names, save_path="confusion_matrix.png"):
     """
-    Sauvegarde la courbe Accuracy.
+    Trace la matrice de confusion.
+    Args:
+        labels (list): Labels réels
+        preds (list): Prédictions
+        class_names (list): Noms des classes
+        save_path (str): Chemin de sauvegarde
     """
-
-    plt.figure(figsize=(8, 5))
-
-    plt.plot(
-        train_accs,
-        label="Train Accuracy"
-    )
-
-    plt.plot(
-        val_accs,
-        label="Validation Accuracy"
-    )
-
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.title("Training and Validation Accuracy")
-
-    plt.legend()
-
-    plt.grid(True)
-
-    plt.savefig(
-        save_path,
-        bbox_inches="tight"
-    )
-
-    plt.close()
-
-
-def save_confusion_matrix(
-    y_true,
-    y_pred,
-    class_names,
-    save_path="figures/confusion_matrix.png"
-):
-    """
-    Sauvegarde la matrice de confusion.
-    """
-
-    cm = confusion_matrix(
-        y_true,
-        y_pred
-    )
+    cm = confusion_matrix(labels, preds)
 
     plt.figure(figsize=(10, 8))
-
-    sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=class_names,
-        yticklabels=class_names
-    )
-
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
-
-    plt.title("Confusion Matrix")
-
-    plt.savefig(
-        save_path,
-        bbox_inches="tight"
-    )
-
-    plt.close()
-
-
-def print_classification_results(
-    y_true,
-    y_pred,
-    class_names
-):
-    """
-    Affiche le classification report.
-    """
-
-    report = classification_report(
-        y_true,
-        y_pred,
-        target_names=class_names
-    )
-
-    print("\n")
-    print("=" * 60)
-    print("CLASSIFICATION REPORT")
-    print("=" * 60)
-    print(report)
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=class_names,
+                yticklabels=class_names)
+    plt.title("Matrice de Confusion")
+    plt.ylabel("Réel")
+    plt.xlabel("Prédit")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.show()
+    print(f"Matrice de confusion sauvegardée dans {save_path}")
