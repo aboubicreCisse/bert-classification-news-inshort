@@ -1,184 +1,53 @@
-# bert-classification-news-inshort
-
-# NLP avec PyTorch – Fine-Tuning de BERT
-
-## Membres du binôme
-
-- Emmanuel Takor Iwuobi
-- Aboubicre CISSE
-
----
-
-# Présentation du Dataset
-
-Dataset : Inshort News Dataset
-
-Nombre total d'exemples : 4817
-
-Nombre de classes : 7
-
-Classes :
-
-- automobile
-- entertainment
-- politics
-- science
-- sports
-- technology
-- world
-
----
-
-# Analyse Exploratoire
-
-## Distribution des classes
-
-| Classe | Nombre |
-|----------|---------:|
-| world | 1021 |
-| entertainment | 998 |
-| sports | 856 |
-| technology | 751 |
-| politics | 546 |
-| science | 389 |
-| automobile | 256 |
-
-Le dataset présente un déséquilibre modéré (≈4:1).
-
----
-
-## Longueur des textes
-
-Minimum : 49 mots
-
-Maximum : 78 mots
-
-Moyenne : 69.77 mots
-
-Nous avons choisi :
-
-```python
-MAX_LENGTH = 128
-```
-
-afin de couvrir l'ensemble des textes.
-
-## Exemples
-
-Ajouter 5 exemples du dataset ici.
-
----
-
-# Modèle Utilisé
-
-```python
-bert-base-uncased
-```
-
-Pourquoi ?
-
-- Dataset anglais
-- Modèle robuste
-- Pré-entraîné sur un très grand corpus
-
----
-
-# Hyperparamètres
-
-```python
-Learning Rate = 2e-5
-
-Batch Size = 16
-
-Epochs = 4
-
-Max Length = 128
-
-Weight Decay = 0.01
-```
-
----
-
-# Architecture
-
-BERT Encoder
-
-↓
-
-Classification Head
-
-↓
-
-Softmax
-
 ---
 
 # Résultats
 
-## Accuracy Finale
+## Métriques par epoch
 
-À compléter après entraînement.
+| Epoch | Train Loss | Train Acc | Val Loss | Val Acc | Val F1 |
+|-------|-----------|-----------|----------|---------|--------|
+| 1     | 0.6585    | 81.94%    | 0.2246   | 93.46%  | 93.46% |
+| 2     | 0.1838    | 94.89%    | 0.2150   | 92.95%  | 92.86% |
+| 3     | 0.1180    | 96.37%    | 0.2054   | **93.78%** | **93.76%** |
 
-## F1-Score Final
-
-À compléter après entraînement.
+## Meilleur modèle
+- **Val Accuracy : 93.78%**
+- **Val F1-score : 93.76%**
+- Sauvegardé à l'epoch 3 (val_loss = 0.2054)
 
 ---
 
 # Courbe de Loss
-
-Ajouter :
-
-```
-figures/loss_curve.png
-```
+![Loss Curve](figures/loss_curve.png)
 
 ---
 
 # Courbe Accuracy
-
-Ajouter :
-
-```
-figures/accuracy_curve.png
-```
+![Accuracy Curve](figures/accuracy_curve.png)
 
 ---
 
 # Matrice de Confusion
-
-Ajouter :
-
-```
-figures/confusion_matrix.png
-```
+![Confusion Matrix](figures/confusion_matrix.png)
 
 ---
 
 # Démo Gradio
-
-Capture d'écran :
-
-```
-gradio_demo.png
-```
+![Gradio Demo](figures/gradio_demo.png)
 
 ---
 
 # Installation
-
 ```bash
 pip install -r requirements.txt
 ```
 
 # Entraînement
-
 ```bash
 python train.py
 ```
 
 # Démo
-
 ```bash
 python demo.py
 ```
@@ -186,29 +55,28 @@ python demo.py
 ---
 
 # Difficultés Rencontrées
-
-- Choix des hyperparamètres
-- Gestion du fine-tuning BERT
-- Temps d'entraînement
+- Conflit de librairies OpenMP sur Windows (résolu avec KMP_DUPLICATE_LIB_OK=TRUE)
+- Incompatibilité entre versions des fichiers lors de la collaboration Git
+- Temps d'entraînement sur CPU (~15 min par epoch)
+- Gestion du .gitignore pour éviter de pousser les fichiers lourds
 
 ---
 
 # Répartition du Travail
+### Aboubicre CISSE
+- Analyse exploratoire du dataset
+- Implémentation de `dataset.py`
+- Boucle d'entraînement `train.py`
+- `utils.py` (métriques, courbes)
+- Interface Gradio `demo.py`
 
-### Membre 1
-
-- Analyse du dataset
-- Implémentation Dataset
-- Entraînement
-
-### Membre 2
-
-- Gradio
-- README
-- Tests
+### Emmanuel Takor Iwuobi
+- Implémentation de `model.py`
+- Structure initiale du projet
+- `README.md`
+- Tests et validation
 
 ---
 
 # Conclusion
-
-Le fine-tuning de BERT a permis d'obtenir d'excellentes performances sur la classification multi-classes de news grâce au transfert d'apprentissage.
+Le fine-tuning de BERT sur le dataset Inshort News a permis d'atteindre une accuracy de **93.78%** et un F1-score de **93.76%** en seulement 3 epochs. Ces résultats démontrent l'efficacité du transfer learning en NLP — BERT pré-entraîné converge rapidement et généralise bien même sur un dataset de taille modeste.
